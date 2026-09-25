@@ -3,11 +3,21 @@
 Weights are never committed to this repository. Each model manifest points at a
 Hugging Face repo; ``llmlab setup`` fetches the file, resumes if interrupted, and
 writes a ``.sha256`` sidecar so later runs can verify integrity.
+
+Two download backends, chosen automatically:
+
+* **huggingface_hub + hf_transfer** - parallel chunked download, typically far
+  faster on HF. Optional; used when both are importable.
+* **urllib** - the default zero-dependency fallback, with HTTP Range resume.
+
+Set ``LLMLAB_DISABLE_HF_TRANSFER=1`` to force the urllib path (useful for
+debugging, or on networks where the parallel fetcher misbehaves).
 """
 
 from __future__ import annotations
 
 import hashlib
+import os
 import time
 import urllib.error
 import urllib.request
@@ -47,6 +57,88 @@ def verify(model: Model) -> tuple[bool, str]:
     if ok:
         return True, f"sha256 ok ({actual[:16]}...)"
     return False, f"sha256 MISMATCH\n      expected {expected}\n      actual   {actual}"
+
+
+def _hf_major() -> int | None:
+    """Major version of the installed huggingface_hub, or None if absent."""
+    try:
+        from huggingface_hub import __version__
+    except Exception:
+        return None
+    try:
+        return int(str(__version__).split(".")[0])
+    except ValueError:
+        return None
+
+
+def hf_transfer_status() -> tuple[bool, str]:
+    """Report whether the accelerated backend is usable, and why not if it isn't."""
+    if os.environ.get("LLMLAB_DISABLE_HF_TRANSFER") == "1":
+        return False, "disabled via LLMLAB_DISABLE_HF_TRANSFER=1"
+    major = _hf_major()
+    if major is None:
+        return False, "huggingface_hub not installed - using urllib"
+    if major >= 1:
+        # huggingface_hub >=1.0 replaced hf_transfer with the Xet backend and
+        # deprecated HF_HUB_ENABLE_HF_TRANSFER.
+        return True, f"available (huggingface_hub {major}.x, Xet backend)"
+    try:
+        __import__("hf_transfer")
+    except ImportError:
+        return False, "hf_transfer not installed (needed for huggingface_hub <1.0)"
+    return True, "available (hf_transfer)"
+
+
+def _fetch_via_hf_transfer(model: Model) -> bool:
+    """Download via huggingface_hub + hf_transfer. Returns True on success.
+
+    Falls back (returns False) on any problem so the urllib path can take over.
+    Downloads straight into the weights dir via ``local_dir`` so the resulting
+    layout is identical to the urllib backend.
+    """
+    ok, why = hf_transfer_status()
+    if not ok:
+        print(f"llmlab: {why}")
+        return False
+
+    major = _hf_major() or 0
+    if major >= 1:
+        os.environ["HF_XET_HIGH_PERFORMANCE"] = "1"
+        print("llmlab: using huggingface_hub (Xet backend, high performance)")
+    else:
+        os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "1"
+        print("llmlab: using hf_transfer (parallel chunked download)")
+
+    try:
+        from huggingface_hub import hf_hub_download
+    except Exception as exc:  # pragma: no cover - import already checked
+        print(f"llmlab: huggingface_hub import failed ({exc}); using urllib")
+        return False
+
+    t0 = time.time()
+    try:
+        path = hf_hub_download(
+            repo_id=model.source.repo,
+            filename=model.source.file,
+            local_dir=str(model.weights_dir),
+        )
+    except Exception as exc:
+        print(f"llmlab: hf_transfer download failed ({type(exc).__name__}: {exc})")
+        print("llmlab: falling back to urllib")
+        return False
+
+    got = Path(path)
+    # Defensive: some hub versions place the file under a cache subdir.
+    if got.resolve() != model.gguf_path.resolve():
+        model.weights_dir.mkdir(parents=True, exist_ok=True)
+        got.replace(model.gguf_path)
+    took = time.time() - t0
+    size_mb = model.gguf_path.stat().st_size / 1_048_576
+    print(
+        f"llmlab: fetched {size_mb:.0f} MB in {took:.0f}s "
+        f"({size_mb/max(took,1e-9):.1f} MB/s)"
+    )
+    return True
 
 
 def _download(url: str, dest: Path, timeout: float = 60.0) -> None:
@@ -119,13 +211,14 @@ def fetch(model: Model, force: bool = False) -> Path:
     model.weights_dir.mkdir(parents=True, exist_ok=True)
     url = model.source.url
     expected = model.source.size_gb
-    if expected:
-        print(f"llmlab: downloading {model.id} ({expected} GB expected)")
-    else:
-        print(f"llmlab: downloading {model.id}")
-    print(f"        {url}")
 
-    _download(url, model.gguf_path)
+    if not _fetch_via_hf_transfer(model):
+        if expected:
+            print(f"llmlab: downloading {model.id} ({expected} GB expected)")
+        else:
+            print(f"llmlab: downloading {model.id}")
+        print(f"        {url}")
+        _download(url, model.gguf_path)
 
     size = model.gguf_path.stat().st_size
     print(f"llmlab: downloaded {_human(size)}")

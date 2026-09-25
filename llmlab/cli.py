@@ -144,13 +144,22 @@ def cmd_doctor(_args: argparse.Namespace) -> int:
     print("\nOptional Python packages")
     for mod, why in (
         ("psutil", "peak-RSS measurement in bench (results degrade to 0 without it)"),
-        ("huggingface_hub", "alternative weight downloader"),
     ):
         try:
             __import__(mod)
             print(f"  [OK  ] {mod:<18} {why}")
         except ImportError:
             print(f"  [--  ] {mod:<18} {why}  (pip install {mod})")
+
+    # Download accelerator: purely optional, urllib remains the default.
+    accel_ok, accel_why = weights.hf_transfer_status()
+    print("\nWeight download backend")
+    if accel_ok:
+        print(f"  [OK  ] accelerated  {accel_why}")
+    else:
+        print(f"  [--  ] {accel_why}")
+    print("         fallback: urllib with HTTP Range resume (no install needed)")
+    print("         note: on a slow connection both backends hit the same ceiling.")
 
     print("\nllama.cpp runtime")
     try:

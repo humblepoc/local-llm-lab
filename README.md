@@ -38,7 +38,8 @@ single distinction is what the model catalog here is organised around.
   fetched automatically
 
 ```powershell
-pip install -e .[better]     # or: pip install psutil
+pip install -e .[better]     # psutil for real RSS numbers
+pip install -e .[all]        # also enables the parallel download backend
 ```
 
 Check your environment at any time:
@@ -46,6 +47,25 @@ Check your environment at any time:
 ```powershell
 llmlab doctor
 ```
+
+### Weight download backends
+
+`llmlab setup` picks one automatically:
+
+| Backend | When | Notes |
+|---|---|---|
+| `huggingface_hub` | installed and importable | Xet backend on hub ≥ 1.0, `hf_transfer` on older |
+| `urllib` | otherwise, or `LLMLAB_DISABLE_HF_TRANSFER=1` | **Default. Zero dependencies.** HTTP Range resume |
+
+Both produce an identical on-disk layout, so switching is free and nothing else
+in the framework changes.
+
+**Caveat worth stating plainly:** a faster downloader does not help if your
+connection is the bottleneck. On the machine this was developed on, 1 curl
+connection managed 2.2 MB/s and 4 parallel connections 3.83 MB/s — and the
+download backend still only reached 4.4 MB/s. If your line tops out around
+4 MB/s, both backends will feel identical, and the real constraint is your
+connection, not the client.
 
 ---
 
@@ -172,7 +192,11 @@ Read these before treating the leaderboard as gospel:
   different harnesses (OpenHands, SWE-agent, vendor sandboxes) and the spread
   between harnesses is large enough to reorder models.
 - Speed numbers are **single-run measurements on one machine**. They do not
-  transfer to other hardware.
+  transfer to other hardware. They are also **noisy**: two runs of the same
+  model, same context, minutes apart on the development machine returned 25.3
+  and 37.1 tok/s — a 47% swing from ordinary background load. Treat the
+  leaderboard as an ordering hint, not a precise figure, and re-run before
+  drawing conclusions from small gaps.
 - Results in this repo were produced on the machine described in
   `results/leaderboard.md`. Reproduce before trusting them elsewhere.
 

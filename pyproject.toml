@@ -15,6 +15,11 @@ dependencies = []
 # psutil gives real peak-RSS numbers in `llmlab bench`; without it the RSS
 # column degrades to 0 rather than failing.
 better = ["psutil>=5.9"]
+# Optional parallel download accelerator. On huggingface_hub >= 1.0 this uses
+# the Xet backend and hf_transfer is no longer required. Without any of these,
+# `llmlab setup` uses urllib with HTTP Range resume, which needs no install.
+fast = ["huggingface_hub>=0.23"]
+all = ["psutil>=5.9", "huggingface_hub>=0.23"]
 
 [project.scripts]
 llmlab = "llmlab.cli:main"
