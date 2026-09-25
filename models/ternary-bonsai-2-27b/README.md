@@ -1,6 +1,10 @@
 # Ternary Bonsai 2 27B
 
-> **Status: BLOCKED.** This model cannot run on a stock install. See below.
+> **Update:** this model was originally marked BLOCKED as needing a from-source
+> build of the PrismML llama.cpp fork. **That was wrong.** PrismML publishes a
+> full CI matrix, and the latest release ships
+> `llama-prism-<tag>-bin-win-cpu-x64.zip`, so `llmlab setup` fetches a prebuilt
+> binary automatically. No CMake, no MSVC.
 
 PrismML's ternary quantisation of Qwen3.8-27B.
 
@@ -30,31 +34,33 @@ where PrismML's own collaborator was still asking about upstream support.
 There are no official Windows release binaries for the fork, so serving this
 means building from source.
 
-### To enable it
+### How it is served
+
+Nothing special is required:
 
 ```powershell
-# 1. Install CMake and MSVC Build Tools
-# 2.
-git clone https://github.com/PrismML-Eng/llama.cpp
-cd llama.cpp
-cmake -B build -DGGML_NATIVE=ON
-cmake --build build --config Release -j
-# 3.
-copy build\bin\llama-server.exe  ..\.llmlab\prism\
+llmlab setup ternary-bonsai-2-27b
+llmlab run   ternary-bonsai-2-27b
 ```
 
-Then `llmlab doctor` will stop reporting it as blocked. Note that
-`llmlab/runtimes/prism.py` currently stops short of wiring up `start()` — that
-is deliberate rather than an oversight, because the fork's flags and pack
-format differ enough from stock that it needs its own tested path.
+`setup` fetches the prebuilt `llama-prism-*-bin-win-cpu-x64.zip` into
+`.llmlab/prism/` and the framework serves the model through the normal
+OpenAI-compatible endpoint. Verified running at build 10735, commit 842b18804.
+
+If you would rather use a self-built binary, drop `llama-server.exe` into
+`.llmlab/prism/` and the framework will use it instead.
 
 ## Verdict for coding specifically
 
 Its parent, Qwen3.8-27B, scores 77.2% on SWE-bench — the best *dense* result in
-this catalog. But Bonsai gives that up for a general benchmark, is not
-coding-specialised, is dense (so every token reads the full tensor), and needs a
-custom toolchain. A 30B MoE delivers more coding capability per unit of speed
-for none of that friction.
+this catalog. But Bonsai trades that for a general benchmark, is not
+coding-specialised, and is dense (so every token reads the full tensor).
 
-Worth building if you are curious about ternary inference or want a small
-general model. Not the recommended coding pick on this hardware.
+The open question is empirical: at ~6.7 GB it reads roughly a third of what
+Laguna's 18.9 GB does, so if throughput scales with bytes read it should land
+around 3x the tok/s. That is the measurement that matters, and it is why this
+model is worth running despite the caveats above.
+
+Prior verdict — "not worth the custom toolchain" — was based on the incorrect
+assumption that a build was required. The toolchain objection is gone; the
+remaining question is purely speed versus quality.

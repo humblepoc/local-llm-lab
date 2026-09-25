@@ -47,25 +47,37 @@ def _api_get(url: str, timeout: float = 30.0) -> dict:
 class LlamaCppRuntime(Runtime):
     kind = "llamacpp"
 
+    # Subclasses (e.g. the PrismML fork) override these.
+    releases_api = RELEASES_API
+    latest_api = LATEST_API
+    bin_root = BIN_DIR
+    label = "llama.cpp"
+    cpu_patterns = _CPU_PATTERNS
+
     def __init__(self) -> None:
         self.server_exe: Path | None = None
 
     # -- install -----------------------------------------------------------
     def _pick_asset(self, assets: list[dict]) -> dict:
-        for pattern in _CPU_PATTERNS:
+        for pattern in self.cpu_patterns:
             for asset in assets:
                 if pattern.search(asset.get("name", "")):
                     return asset
         names = [a.get("name", "") for a in assets]
         raise RuntimeError_(
-            "no Windows x64 CPU binary found in the latest llama.cpp release. "
+            f"no Windows x64 CPU binary found in the latest {self.label} release. "
             f"Available assets: {', '.join(names) or '(none)'}"
         )
 
+    def _tag_key(self, tag: str) -> tuple[int, int]:
+        """Order releases newest-first. Default matches rolling bNNNNN tags."""
+        m = re.fullmatch(r"b(\d+)", tag)
+        return (1, int(m.group(1))) if m else (0, 0)
+
     def _find_server(self) -> Path | None:
-        if not BIN_DIR.is_dir():
+        if not self.bin_root.is_dir():
             return None
-        for candidate in BIN_DIR.rglob("llama-server.exe"):
+        for candidate in self.bin_root.rglob("llama-server.exe"):
             return candidate
         return None
 
@@ -78,24 +90,23 @@ class LlamaCppRuntime(Runtime):
         newest one that has a matching asset.
         """
         try:
-            releases = _api_get(RELEASES_API)
+            releases = _api_get(self.releases_api)
         except Exception:
             releases = []
 
         if isinstance(releases, list):
-            # Newest first, and prefer the rolling bNNNNN nightlies.
-            def sort_key(rel: dict) -> tuple[int, int]:
-                tag = rel.get("tag_name") or ""
-                m = re.fullmatch(r"b(\d+)", tag)
-                return (1, int(m.group(1))) if m else (0, 0)
-
-            for rel in sorted(releases, key=sort_key, reverse=True):
-                for pattern in _CPU_PATTERNS:
+            ordered = sorted(
+                releases,
+                key=lambda rel: self._tag_key(rel.get("tag_name") or ""),
+                reverse=True,
+            )
+            for rel in ordered:
+                for pattern in self.cpu_patterns:
                     if any(pattern.search(a.get("name", "")) for a in rel.get("assets", [])):
                         return rel
 
         # Fall back to the stable "latest" release.
-        return _api_get(LATEST_API)
+        return _api_get(self.latest_api)
 
     def ensure_installed(self) -> None:
         existing = self._find_server()
@@ -103,8 +114,8 @@ class LlamaCppRuntime(Runtime):
             self.server_exe = existing
             return
 
-        BIN_DIR.mkdir(parents=True, exist_ok=True)
-        print("llmlab: resolving latest llama.cpp Windows build...")
+        self.bin_root.mkdir(parents=True, exist_ok=True)
+        print(f"llmlab: resolving latest {self.label} Windows build...")
         release = self._fetch_release()
         tag = release.get("tag_name", "?")
         asset = self._pick_asset(release.get("assets", []))
@@ -119,12 +130,12 @@ class LlamaCppRuntime(Runtime):
 
         print("llmlab: extracting...")
         with zipfile.ZipFile(io.BytesIO(blob)) as zf:
-            zf.extractall(BIN_DIR)
+            zf.extractall(self.bin_root)
 
         found = self._find_server()
         if not found:
             raise RuntimeError_(
-                f"extracted archive but could not find llama-server.exe under {BIN_DIR}"
+                f"extracted archive but could not find llama-server.exe under {self.bin_root}"
             )
         self.server_exe = found
         print(f"llmlab: llama-server ready at {found}")

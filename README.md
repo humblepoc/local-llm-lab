@@ -92,6 +92,16 @@ llmlab doctor
 Both produce an identical on-disk layout, so switching is free and nothing else
 in the framework changes.
 
+**The fallback is not decorative — it has already been needed in practice.** On
+this machine the `huggingface_hub` Xet path **stalled at 0 bytes** on a 6.9 GB
+ternary pack and made no progress at all, while the urllib path pulled the same
+file at full rate. If `llmlab setup` ever appears to hang at 0%, run:
+
+```powershell
+$env:LLMLAB_DISABLE_HF_TRANSFER = "1"
+llmlab setup <model>
+```
+
 **Caveat worth stating plainly:** a faster downloader does not help if your
 connection is the bottleneck. On the machine this was developed on, 1 curl
 connection managed 2.2 MB/s and 4 parallel connections 3.83 MB/s — and the
@@ -250,13 +260,19 @@ llmlab run   smoke-tiny
 | Runtime | Status | Used for |
 |---|---|---|
 | `llamacpp` | Prebuilt, auto-fetched | Everything in the default catalog |
-| `prism` | **Manual build required** | Ternary models (Ternary Bonsai) |
+| `prism` | Prebuilt, auto-fetched | Ternary models (Ternary Bonsai) |
 
 Stock llama.cpp and Ollama **cannot** load PrismML's `PQ2_0`/`PTQ1_0` ternary
 packs — the kernels and the required Hadamard rotation are not upstream. As of
-September 2026 they are still not in mainline. The framework reports such models
-as `blocked` rather than failing partway through an eval. `llmlab doctor` prints
-the build steps.
+September 2026 they are still not in mainline, so ternary models need
+PrismML's fork. That fork *does* publish prebuilt Windows x64 CPU binaries, so
+`llmlab setup` provisions it automatically: no CMake, no MSVC.
+
+> **Correction.** An earlier version of this README claimed the PrismML fork
+> ships no Windows binaries and that serving a ternary model required building
+> from source with CMake and MSVC Build Tools. That was wrong, and it made a
+> perfectly runnable model look permanently blocked. The `prism` runtime now
+> fetches the prebuilt binary exactly the way `llamacpp` does.
 
 ---
 

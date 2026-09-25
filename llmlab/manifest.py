@@ -45,17 +45,19 @@ class RuntimeSpec:
     ``ctx_size`` is the *working* context, deliberately not the model's native
     context. A 262K-native model on a 32GB box will exhaust RAM; the manifest
     encodes something that actually fits.
+
+    ``needs_build`` is a declaration, not a guess about the runtime kind. It is
+    true only for a runtime that genuinely cannot be provisioned automatically.
+    Ternary models once needed a from-source PrismML build, but that fork now
+    ships prebuilt Windows x64 CPU binaries, so nothing in the default catalog
+    sets this.
     """
 
     kind: str
     ctx_size: int = 8192
     threads: int = 0
     extra_args: tuple[str, ...] = ()
-
-    @property
-    def needs_build(self) -> bool:
-        """True when serving requires a from-source toolchain we don't ship."""
-        return self.kind == "prism"
+    needs_build: bool = False
 
 
 @dataclass
@@ -180,6 +182,7 @@ class Model:
             ctx_size=int(r.get("ctx_size", 8192)),
             threads=int(r.get("threads", 0)),
             extra_args=tuple(r.get("extra_args", ())),
+            needs_build=bool(r.get("needs_build", False)),
         )
 
         return cls(
