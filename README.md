@@ -59,6 +59,45 @@ The practical upshot: **dense models may be a better bet than expected**, and a
 leans MoE because the published benchmark quality is there — but measure before
 committing, which is what this framework is for.
 
+## The second headline: ternary is a GPU trick too
+
+Ternary quantisation (Bonsai 2, 6.7 GB, ~1.71 bits/weight) looked like the
+answer to the bandwidth problem: a third of the bytes of the 18.9 GB MoE, at
+94.6% of its FP16 reference quality.
+
+Measured on the same machine:
+
+```
+prompt processing, n_tokens = 42,  t =  87.88 s / 0.48 tokens per second
+prompt processing, n_tokens = 50,  t = 152.60 s / 0.33 tokens per second
+```
+
+**It never finished prefill.** A "Say OK" with a 3-token prompt ran 19 minutes
+without producing a single token. Roughly **15-50x slower** than the model it
+was supposed to beat.
+
+Ternary matmul is compute-bound: expanding -1/0/+1 weights into something the
+CPU can multiply costs more arithmetic than it saves in memory traffic. On a GPU
+that trade is free. Here it is a disaster.
+
+### The pattern across both findings
+
+MoE and ternary are both **GPU optimisations**. They trade compute for memory
+bandwidth, which is a losing trade when you have neither spare compute nor
+much bandwidth — and this machine is a bandwidth-bound CPU with slow cores and
+no VRAM.
+
+So the practical guidance for a GPU-less 32 GB box is the opposite of the
+usual advice:
+
+- **Ignore `active_params`.** It predicts nothing here.
+- **Ignore bits-per-weight.** Same reason.
+- **Optimise for total weight size, and little else.** Small, dense, ordinary
+  quantisation. A 4 GB model will beat a 19 GB one.
+
+`smoke-tiny` (0.5 B, 469 MB) hitting **37 tok/s** while a 27 B ternary model
+could not finish prefilling a 3-token prompt is the whole lesson in two numbers.
+
 ---
 
 ## Requirements
