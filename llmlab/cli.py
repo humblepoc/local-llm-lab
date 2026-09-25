@@ -1,4 +1,4 @@
-"""llmlab — plug-and-play local model evaluation.
+"""llmlab - plug-and-play local model evaluation.
 
 Commands:
     llmlab doctor              environment audit
@@ -441,6 +441,15 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Windows consoles default to cp1252 and will raise UnicodeEncodeError on
+    # anything outside it (the leaderboard uses check/cross marks). Force UTF-8
+    # with replacement so a status glyph can never crash a command.
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
+        except Exception:
+            pass
+
     parser = build_parser()
     args = parser.parse_args(argv)
     try:

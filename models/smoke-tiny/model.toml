@@ -1,0 +1,25 @@
+[model]
+id = "smoke-tiny"
+name = "Smoke Tiny (Qwen2.5-0.5B-Instruct)"
+org = "Alibaba"
+license = "apache-2.0"
+arch = "dense"
+total_params = "0.5B"
+active_params = ""
+context_native = 32768
+released = "2024-09"
+description = "Tiny model used ONLY to verify the framework pipeline end to end. Not a coding recommendation."
+eval_tiers = ["perf", "coding", "tools"]
+notes = "Self-test / CI model. Expect near-zero coding and tool scores - that is correct, not a bug."
+tags = ["test"]
+
+[source]
+repo = "Qwen/Qwen2.5-0.5B-Instruct-GGUF"
+file = "qwen2.5-0.5b-instruct-q4_k_m.gguf"
+size_gb = 0.47
+
+[runtime]
+kind = "llamacpp"
+ctx_size = 4096
+threads = 0
+extra_args = []

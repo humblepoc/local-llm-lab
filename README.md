@@ -160,6 +160,14 @@ Read these before treating the leaderboard as gospel:
   separates "can write a function" from "cannot" reliably, and it will
   **systematically underrate agentic ability** because it never exercises
   multi-file editing, tool loops, or debugging.
+- **The two quality tiers are not equally discriminating.** The `smoke-tiny`
+  baseline (a 0.5B model) scored 21% on coding but 75% on tool calling. Emitting
+  a schema-valid `tool_calls` block is largely format imitation; writing correct
+  code is not. Do not read a high tool score as "good at coding".
+- **Truncation is scored as failure.** A model that rambles until `max_tokens`
+  fails with a `SyntaxError` rather than a wrong answer. That is the right call
+  for an agent that must emit complete code, but it means the coding score
+  blends "couldn't solve it" with "didn't stop".
 - **Vendor SWE-bench numbers are not comparable.** Published figures use
   different harnesses (OpenHands, SWE-agent, vendor sandboxes) and the spread
   between harnesses is large enough to reorder models.
@@ -167,6 +175,17 @@ Read these before treating the leaderboard as gospel:
   transfer to other hardware.
 - Results in this repo were produced on the machine described in
   `results/leaderboard.md`. Reproduce before trusting them elsewhere.
+
+### Baseline
+
+`smoke-tiny` (Qwen2.5-0.5B-Instruct, 469 MB) is in the catalog as a **pipeline
+self-test**, not a recommendation. It verifies the whole framework end to end in
+under a minute without a 19 GB download, which makes it usable in CI:
+
+```powershell
+llmlab setup smoke-tiny
+llmlab run   smoke-tiny
+```
 
 ---
 
