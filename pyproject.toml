@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "llmlab"
+version = "0.1.0"
+description = "Plug-and-play local LLM evaluation: add a model directory, get benchmarks and a leaderboard."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = []
+
+[project.optional-dependencies]
+# psutil gives real peak-RSS numbers in `llmlab bench`; without it the RSS
+# column degrades to 0 rather than failing.
+better = ["psutil>=5.9"]
+
+[project.scripts]
+llmlab = "llmlab.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["llmlab*"]

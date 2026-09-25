@@ -1,0 +1,25 @@
+﻿[model]
+id = "laguna-xs-2.1"
+name = "Laguna XS 2.1"
+org = "Poolside"
+license = "openmdw-1.1"
+arch = "moe"
+total_params = "33B"
+active_params = "3B"
+context_native = 262144
+released = "2026-07"
+description = "Poolside's agentic-coding MoE. Highest Terminal-Bench 2.0 score in the 3B-active class; 256K native context."
+eval_tiers = ["perf", "coding", "tools"]
+notes = "Best quality in the only speed class a 32GB CPU-only box can run. openmdw-1.1 is not a standard OSS licence - read it before commercial use."
+tags = ["coding"]
+
+[source]
+repo = "poolside/Laguna-XS-2.1-GGUF"
+file = "Laguna-XS-2.1-Q4_K_M.gguf"
+size_gb = 18.88
+
+[runtime]
+kind = "llamacpp"
+ctx_size = 32768
+threads = 0
+extra_args = []

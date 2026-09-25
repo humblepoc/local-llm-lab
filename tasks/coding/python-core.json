@@ -1,0 +1,116 @@
+[
+  {
+    "id": "two_sum",
+    "tags": ["python", "arrays", "basic"],
+    "prompt": "Write a Python function `two_sum(nums, target)` that returns the indices of the two numbers in `nums` that add up to `target`. Exactly one solution exists and you may not use the same element twice. Return the indices as a list [i, j] with i < j. Return the function only, no explanation.",
+    "check": "assert two_sum([2, 7, 11, 15], 9) == [0, 1]\nassert two_sum([3, 2, 4], 6) == [1, 2]\nassert two_sum([3, 3], 6) == [0, 1]\nassert two_sum([-1, -2, -3, -4, -5, -6], -11) == [4, 5]"
+  },
+  {
+    "id": "reverse_string",
+    "tags": ["python", "strings", "basic"],
+    "prompt": "Write a Python function `reverse_string(s)` that returns the input string reversed. Do not use the built-in reversed() or slicing on a list. Return the function only.",
+    "check": "assert reverse_string('hello') == 'olleh'\nassert reverse_string('') == ''\nassert reverse_string('a') == 'a'\nassert reverse_string('racecar') == 'racecar'"
+  },
+  {
+    "id": "is_palindrome",
+    "tags": ["python", "strings", "basic"],
+    "prompt": "Write a Python function `is_palindrome(s)` that returns True if `s` is a palindrome, ignoring all non-alphanumeric characters and treating letters case-insensitively. Return the function only.",
+    "check": "assert is_palindrome('A man, a plan, a canal: Panama') is True\nassert is_palindrome('') is True\nassert is_palindrome('race a car') is False\nassert is_palindrome('12321') is True"
+  },
+  {
+    "id": "fizzbuzz",
+    "tags": ["python", "loops", "basic"],
+    "prompt": "Write a Python function `fizzbuzz(n)` that returns a list of strings for 1..n where multiples of 3 become 'Fizz', multiples of 5 become 'Buzz', multiples of both become 'FizzBuzz', and everything else becomes the number as a string. Return the function only.",
+    "check": "assert fizzbuzz(5) == ['1', '2', 'Fizz', '4', 'Buzz']\nassert fizzbuzz(15)[-1] == 'FizzBuzz'\nassert len(fizzbuzz(100)) == 100"
+  },
+  {
+    "id": "factorial",
+    "tags": ["python", "recursion", "basic"],
+    "prompt": "Write a Python function `factorial(n)` that returns n! for non-negative integers n. It must work for n=0 (returning 1) and must not use math.factorial. Return the function only.",
+    "check": "assert factorial(0) == 1\nassert factorial(1) == 1\nassert factorial(5) == 120\nassert factorial(10) == 3628800"
+  },
+  {
+    "id": "flatten_dict",
+    "tags": ["python", "dicts", "intermediate"],
+    "prompt": "Write a Python function `flatten_dict(d, sep='.')` that flattens a nested dictionary into a single level, joining nested keys with `sep`. Empty dict values are dropped. Return the function only.",
+    "check": "assert flatten_dict({'a': 1, 'b': {'c': 2, 'd': {'e': 3}}}) == {'a': 1, 'b.c': 2, 'b.d.e': 3}\nassert flatten_dict({'x': {'y': {}}}) == {}\nassert flatten_dict({}) == {}\nassert flatten_dict({'a': 1}) == {'a': 1}"
+  },
+  {
+    "id": "group_anagrams",
+    "tags": ["python", "dicts", "strings", "intermediate"],
+    "prompt": "Write a Python function `group_anagrams(words)` that groups words that are anagrams of each other. Return a list of lists, where each inner list contains words that are anagrams, and the outer list order does not matter but must be deterministic for a given input. Return the function only.",
+    "check": "r = group_anagrams(['eat','tea','tan','ate','nat','bat'])\nassert sorted(sorted(g) for g in r) == [['ate','eat','tea'], ['nat','tan'], ['bat']]\nassert group_anagrams([]) == []\nassert group_anagrams(['']) == [['']]"
+  },
+  {
+    "id": "longest_common_prefix",
+    "tags": ["python", "strings", "intermediate"],
+    "prompt": "Write a Python function `longest_common_prefix(strs)` that returns the longest common prefix string of a list of strings. Return an empty string if the list is empty or there is no common prefix. Return the function only.",
+    "check": "assert longest_common_prefix(['flower','flow','flight']) == 'fl'\nassert longest_common_prefix(['dog','racecar','car']) == ''\nassert longest_common_prefix([]) == ''\nassert longest_common_prefix(['a']) == 'a'\nassert longest_common_prefix(['', 'abc']) == ''"
+  },
+  {
+    "id": "binary_search",
+    "tags": ["python", "search", "intermediate"],
+    "prompt": "Write a Python function `binary_search(arr, target)` that returns the index of `target` in the sorted list `arr`, or -1 if not present. It must run in O(log n) time. Return the function only.",
+    "check": "assert binary_search([1,3,5,7,9,11], 7) == 3\nassert binary_search([1,3,5,7,9,11], 1) == 0\nassert binary_search([1,3,5,7,9,11], 11) == 5\nassert binary_search([1,3,5], 4) == -1\nassert binary_search([], 1) == -1"
+  },
+  {
+    "id": "merge_intervals",
+    "tags": ["python", "sorting", "intermediate"],
+    "prompt": "Write a Python function `merge_intervals(intervals)` that merges all overlapping intervals and returns them sorted by start. Return the function only.",
+    "check": "assert merge_intervals([[1,3],[2,6],[8,10],[15,18]]) == [[1,6],[8,10],[15,18]]\nassert merge_intervals([[1,4],[4,5]]) == [[1,5]]\nassert merge_intervals([]) == []\nassert merge_intervals([[1,4],[0,4]]) == [[0,4]]"
+  },
+  {
+    "id": "valid_parentheses",
+    "tags": ["python", "stack", "intermediate"],
+    "prompt": "Write a Python function `is_valid_parentheses(s)` that returns True if every opening bracket in the string `s` is closed by the same type of bracket in the correct order. Bracket types are (), [], {}. Return the function only.",
+    "check": "assert is_valid_parentheses('()[]{}') is True\nassert is_valid_parentheses('(]') is False\nassert is_valid_parentheses('([)]') is False\nassert is_valid_parentheses('{[]}') is True\nassert is_valid_parentheses('') is True\nassert is_valid_parentheses('(') is False"
+  },
+  {
+    "id": "lru_cache_class",
+    "tags": ["python", "oop", "intermediate"],
+    "prompt": "Write a Python class `LRUCache` with `__init__(self, capacity)`, and methods `get(self, key)` and `put(self, key, value)`. `get` returns the value or -1 if absent. `put` inserts and, when over capacity, evicts the least recently used key. `get` counts as a use. Return the class only.",
+    "check": "c = LRUCache(2)\nc.put(1,1); c.put(2,2)\nassert c.get(1) == 1\nc.put(3,3)\nassert c.get(2) == -1\nassert c.get(3) == 3\nc2 = LRUCache(1)\nc2.put(9,9); c2.put(8,8)\nassert c2.get(9) == -1\nassert c2.get(8) == 8"
+  },
+  {
+    "id": "roman_to_int",
+    "tags": ["python", "strings", "intermediate"],
+    "prompt": "Write a Python function `roman_to_int(s)` that converts a valid uppercase Roman numeral to an integer. It must handle subtractive forms like IV (4), IX (9), XL (40), XC (90), CD (400), CM (900). Return the function only.",
+    "check": "assert roman_to_int('III') == 3\nassert roman_to_int('LVIII') == 58\nassert roman_to_int('MCMXCIV') == 1994\nassert roman_to_int('IV') == 4\nassert roman_to_int('MMXXIV') == 2024"
+  },
+  {
+    "id": "word_frequency",
+    "tags": ["python", "text", "advanced"],
+    "prompt": "Write a Python function `word_frequency(text)` that returns a dict mapping each lowercase word to its count. Words are separated by whitespace and punctuation is stripped. Return the function only.",
+    "check": "assert word_frequency('the quick brown fox jumps over the lazy dog the end') == {'the':3,'quick':1,'brown':1,'fox':1,'jumps':1,'over':1,'lazy':1,'dog':1,'end':1}\nassert word_frequency('') == {}\nassert word_frequency('Hello, hello! HELLO.') == {'hello':3}"
+  },
+  {
+    "id": "matrix_multiply",
+    "tags": ["python", "math", "advanced"],
+    "prompt": "Write a Python function `matrix_multiply(a, b)` that multiplies two matrices represented as lists of lists and returns the product. Do not use numpy. Raise ValueError if dimensions do not match. Return the function only.",
+    "check": "assert matrix_multiply([[1,2],[3,4]], [[5,6],[7,8]]) == [[19,22],[43,50]]\nassert matrix_multiply([[1,2,3]], [[1],[2],[3]]) == [[14]]\ntry:\n    matrix_multiply([[1,2]], [[1,2]])\n    raise AssertionError('should have raised')\nexcept ValueError:\n    pass"
+  },
+  {
+    "id": "memoize_fib",
+    "tags": ["python", "recursion", "advanced"],
+    "prompt": "Write a Python function `fib(n)` that returns the nth Fibonacci number (F(0)=0, F(1)=1) efficiently for n up to at least 10000. It must not take exponential time. Return the function only.",
+    "check": "assert fib(0) == 0\nassert fib(1) == 1\nassert fib(10) == 55\nassert fib(100) == 354224848179261915075\nassert fib(1000) == 43466557686937456435688527675040625802564660517371780402481729089536555417949051890403879840079255169295922593080322634775209689623239873322471161642996440906533187938298969649928516003704476137795166849228875\nimport time\nt0=time.time(); fib(10000); assert time.time()-t0 < 5"
+  },
+  {
+    "id": "parse_csv_line",
+    "tags": ["python", "parsing", "advanced"],
+    "prompt": "Write a Python function `parse_csv_line(line)` that parses one line of CSV supporting quoted fields containing commas, and escaped double quotes represented as two double quotes. It returns a list of field strings. Do not use the csv module. Return the function only.",
+    "check": "assert parse_csv_line('a,b,c') == ['a','b','c']\nassert parse_csv_line('a,\"b,c\",d') == ['a','b,c','d']\nassert parse_csv_line('a,\"say \"\"hi\"\"\",c') == ['a','say \"hi\"','c']\nassert parse_csv_line('') == ['']\nassert parse_csv_line('a,,c') == ['a','','c']"
+  },
+  {
+    "id": "debounce_decorator",
+    "tags": ["python", "decorators", "advanced"],
+    "prompt": "Write a Python decorator `debounce(seconds)` that wraps a function so that it only actually runs once, `seconds` after the most recent call. Rapid repeated calls reset the timer. Return the decorator only.",
+    "check": "import time\ncalls = []\n@debounce(0.3)\ndef f(x):\n    calls.append(x)\n    return x\nf(1); f(2); f(3)\nassert calls == []\ntime.sleep(0.6)\nassert calls == [3]\nf(9)\ntime.sleep(0.6)\nassert calls == [3, 9]"
+  },
+  {
+    "id": "classify_complexity",
+    "tags": ["python", "analysis", "advanced"],
+    "prompt": "Write a Python function `classify_complexity(n)` that returns the Big-O complexity class of a naive implementation of n-bubble-sort as a string: 'O(1)' for n <= 1, 'O(n)' for n <= 10, 'O(n^2)' for n <= 1000, and 'O(n^3)' otherwise. Return the function only.",
+    "check": "assert classify_complexity(0) == 'O(1)'\nassert classify_complexity(1) == 'O(1)'\nassert classify_complexity(5) == 'O(n)'\nassert classify_complexity(10) == 'O(n)'\nassert classify_complexity(11) == 'O(n^2)'\nassert classify_complexity(1000) == 'O(n^2)'\nassert classify_complexity(1001) == 'O(n^3)'"
+  }
+]

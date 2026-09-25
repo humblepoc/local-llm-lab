@@ -1,0 +1,38 @@
+# Model weights are downloaded separately, never committed.
+*.gguf
+*.ggml
+*.safetensors
+*.bin
+models/*/weights/
+models/*/*.gguf
+
+# Cached runtime binaries (llama-server etc.)
+.llmlab/
+
+# Raw benchmark output; the aggregated leaderboard.md IS committed.
+results/raw/
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Secrets — never commit these
+.env
+*.token
+credentials.json
+
+# Logs
+*.log

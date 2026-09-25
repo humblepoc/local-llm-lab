@@ -1,0 +1,25 @@
+﻿[model]
+id = "north-mini-code-1.0"
+name = "North Mini Code 1.0"
+org = "Cohere"
+license = "apache-2.0"
+arch = "moe"
+total_params = "30B"
+active_params = "3B"
+context_native = 0
+released = "2026-09"
+description = "Cohere's coding-specialist MoE. 30B total / 3B active, purpose-built for repo edits, terminal tasks and code review."
+eval_tiers = ["perf", "coding", "tools"]
+notes = "Runner-up to Laguna. Clean Apache 2.0 if licensing matters."
+tags = ["coding"]
+
+[source]
+repo = "unsloth/North-Mini-Code-1.0-GGUF"
+file = "North-Mini-Code-1.0-UD-Q4_K_M.gguf"
+size_gb = 17.88
+
+[runtime]
+kind = "llamacpp"
+ctx_size = 32768
+threads = 0
+extra_args = []

@@ -1,0 +1,25 @@
+﻿[model]
+id = "ternary-bonsai-2-27b"
+name = "Ternary Bonsai 2 27B"
+org = "PrismML"
+license = "apache-2.0"
+arch = "ternary"
+total_params = "27B"
+active_params = ""
+context_native = 262144
+released = "2026-09"
+description = "Qwen3.8-27B compressed to ternary weights (~1.71 bpw). 94.6% of the FP16 reference benchmark at a quarter of the memory."
+eval_tiers = ["perf", "coding", "tools"]
+notes = "BLOCKED: needs a from-source build of the PrismML llama.cpp fork. Stock llama.cpp and Ollama cannot load PQ2_0/PTQ1_0."
+tags = ["coding"]
+
+[source]
+repo = "prism-ml/Ternary-Bonsai-2-27B-GGUF"
+file = "Ternary-Bonsai-2-27B-PQ2_0.gguf"
+size_gb = 6.71
+
+[runtime]
+kind = "prism"
+ctx_size = 32768
+threads = 0
+extra_args = []

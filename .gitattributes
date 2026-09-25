@@ -1,0 +1,12 @@
+# Normalise line endings: store LF in the repo, check out per-platform.
+* text=auto eol=lf
+
+# Windows scripts must keep CRLF to run under cmd.exe
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary-ish files
+*.gguf binary
+*.png binary
+*.jpg binary

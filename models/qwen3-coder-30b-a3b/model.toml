@@ -1,0 +1,25 @@
+﻿[model]
+id = "qwen3-coder-30b-a3b"
+name = "Qwen3-Coder-30B-A3B-Instruct"
+org = "Alibaba"
+license = "apache-2.0"
+arch = "moe"
+total_params = "30.5B"
+active_params = "3.3B"
+context_native = 262144
+released = "2025-07"
+description = "The most widely deployed local coding MoE. 50.3% SWE-bench Verified, native 262K context, 128 experts with 8 active."
+eval_tiers = ["perf", "coding", "tools"]
+notes = "Most battle-tested option. Lower SWE-bench than Laguna XS 2.1 at the same speed class."
+tags = ["coding"]
+
+[source]
+repo = "unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF"
+file = "Qwen3-Coder-30B-A3B-Instruct-Q4_K_M.gguf"
+size_gb = 17.28
+
+[runtime]
+kind = "llamacpp"
+ctx_size = 32768
+threads = 0
+extra_args = []

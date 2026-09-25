@@ -1,0 +1,25 @@
+﻿[model]
+id = "nemotron-cascade-2-30b-a3b"
+name = "Nemotron Cascade 2 30B A3B"
+org = "NVIDIA"
+license = "other"
+arch = "moe"
+total_params = "30B"
+active_params = "3B"
+context_native = 0
+released = "2026-09"
+description = "NVIDIA's reasoning-focused MoE. Strong on most coding benchmarks but reported weaker on SWE-bench specifically."
+eval_tiers = ["perf", "coding", "tools"]
+notes = "TIGHT: 23GB of weights in a 32GB box leaves little KV cache. ctx is pinned to 8K for that reason. Licence is 'other' - check terms."
+tags = ["coding"]
+
+[source]
+repo = "bartowski/nvidia_Nemotron-Cascade-2-30B-A3B-GGUF"
+file = "nvidia_Nemotron-Cascade-2-30B-A3B-Q4_K_M.gguf"
+size_gb = 23.03
+
+[runtime]
+kind = "llamacpp"
+ctx_size = 8192
+threads = 0
+extra_args = []
