@@ -260,6 +260,24 @@ the build steps.
 
 ---
 
+## Using these models in OpenCode
+
+`integrations/opencode.json` is a ready-to-merge provider block. Add the
+`llmlab` entry to `providers{}` in your OpenCode config, then:
+
+```powershell
+llmlab serve laguna-xs-2.1     # or any catalog model
+opencode run --model "llmlab/laguna-xs-2.1#low" "explain this repo"
+```
+
+**If you skip one thing, do not skip `compatibility.reasoningField`.** These
+models stream their output into `reasoning_content` and leave `content` empty.
+A client that reads only `delta.content` sees nothing at all — which is exactly
+the bug this framework hit while measuring them. The setting is already present
+in the integration file for every reasoning model.
+
+---
+
 ## Layout
 
 ```

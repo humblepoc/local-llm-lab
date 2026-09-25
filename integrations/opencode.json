@@ -1,0 +1,85 @@
+{
+  "$comment": [
+    "Drop-in OpenCode provider block for local-llm-lab models.",
+    "Merge the 'llmlab' entry into providers{} in your ~/.config/opencode/opencode.json.",
+    "Contains no secrets. The apiKey is a placeholder: llama-server ignores it.",
+    "Requires a server on the port below. Start one with:  llmlab serve <model>"
+  ],
+  "providers": {
+    "llmlab": {
+      "name": "Local LLM Lab (llama.cpp)",
+      "package": "@opencode/ai/providers/openai-compatible",
+      "settings": {
+        "baseURL": "http://127.0.0.1:8090/v1",
+        "apiKey": "llmlab-local"
+      },
+      "models": {
+        "laguna-xs-2.1": {
+          "name": "Laguna XS 2.1 (local, 6.3 tok/s)",
+          "compatibility": { "reasoningField": "reasoning_content" },
+          "settings": { "reasoningEffort": "high" },
+          "limit": { "context": 16384, "output": 4096 },
+          "variants": [
+            { "id": "xhigh", "settings": { "reasoningEffort": "xhigh" } },
+            { "id": "high", "settings": { "reasoningEffort": "high" } },
+            { "id": "medium", "settings": { "reasoningEffort": "medium" } },
+            { "id": "low", "settings": { "reasoningEffort": "low" } },
+            { "id": "minimal", "settings": { "reasoningEffort": "minimal" } },
+            { "id": "none", "settings": { "reasoningEffort": "none" } }
+          ]
+        },
+        "north-mini-code-1.0": {
+          "name": "North Mini Code 1.0 (local)",
+          "compatibility": { "reasoningField": "reasoning_content" },
+          "settings": { "reasoningEffort": "high" },
+          "limit": { "context": 16384, "output": 4096 },
+          "variants": [
+            { "id": "xhigh", "settings": { "reasoningEffort": "xhigh" } },
+            { "id": "high", "settings": { "reasoningEffort": "high" } },
+            { "id": "medium", "settings": { "reasoningEffort": "medium" } },
+            { "id": "low", "settings": { "reasoningEffort": "low" } },
+            { "id": "minimal", "settings": { "reasoningEffort": "minimal" } },
+            { "id": "none", "settings": { "reasoningEffort": "none" } }
+          ]
+        },
+        "qwen3-coder-30b-a3b": {
+          "name": "Qwen3-Coder-30B-A3B (local)",
+          "settings": { "reasoningEffort": "high" },
+          "limit": { "context": 16384, "output": 4096 },
+          "variants": [
+            { "id": "xhigh", "settings": { "reasoningEffort": "xhigh" } },
+            { "id": "high", "settings": { "reasoningEffort": "high" } },
+            { "id": "medium", "settings": { "reasoningEffort": "medium" } },
+            { "id": "low", "settings": { "reasoningEffort": "low" } },
+            { "id": "minimal", "settings": { "reasoningEffort": "minimal" } },
+            { "id": "none", "settings": { "reasoningEffort": "none" } }
+          ]
+        },
+        "nemotron-cascade-2-30b-a3b": {
+          "name": "Nemotron Cascade 2 30B A3B (local, tight)",
+          "compatibility": { "reasoningField": "reasoning_content" },
+          "settings": { "reasoningEffort": "high" },
+          "limit": { "context": 8192, "output": 4096 },
+          "variants": [
+            { "id": "xhigh", "settings": { "reasoningEffort": "xhigh" } },
+            { "id": "high", "settings": { "reasoningEffort": "high" } },
+            { "id": "medium", "settings": { "reasoningEffort": "medium" } },
+            { "id": "low", "settings": { "reasoningEffort": "low" } },
+            { "id": "minimal", "settings": { "reasoningEffort": "minimal" } },
+            { "id": "none", "settings": { "reasoningEffort": "none" } }
+          ]
+        },
+        "smoke-tiny": {
+          "name": "Smoke Tiny 0.5B (local, pipeline test only)",
+          "limit": { "context": 4096, "output": 2048 }
+        },
+        "ternary-bonsai-2-27b": {
+          "name": "Ternary Bonsai 2 27B (local, BLOCKED: needs PrismML fork)",
+          "compatibility": { "reasoningField": "reasoning_content" },
+          "limit": { "context": 16384, "output": 4096 },
+          "disabled": true
+        }
+      }
+    }
+  }
+}
