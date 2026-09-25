@@ -29,6 +29,29 @@ FILLER = (
     "def parse_token(s: str) -> Token: return Token(s.strip().lower())\n"
 )
 
+# llama.cpp recognises these as reasoning fields. A reasoning model streams
+# into one of them rather than `content`, so counting only `content` reports
+# 0 tok/s for exactly the models this framework is built to evaluate.
+TEXT_FIELDS = (
+    "content",
+    "reasoning_content",
+    "reasoning",
+    "reasoning_text",
+    "thinking",
+)
+
+
+def _delta_text(delta: dict) -> str:
+    """Concatenate any text-bearing field from a streaming delta."""
+    if not isinstance(delta, dict):
+        return ""
+    out: list[str] = []
+    for field in TEXT_FIELDS:
+        val = delta.get(field)
+        if isinstance(val, str) and val:
+            out.append(val)
+    return "".join(out)
+
 
 @dataclass
 class PerfSample:
@@ -157,32 +180,28 @@ def measure_once(
         load_s = time.time() - t0
 
         # --- generation: TTFT + decode rate ---------------------------
+        # Count every text-bearing delta field, not just `content`:
+        # reasoning models stream into a separate field and would otherwise
+        # measure as 0 tok/s with a TTFT equal to total generation time.
         messages = [
             {"role": "user", "content": "Write a Python function that reverses a linked list. Code only."}
         ]
-        ttft = None
-        first_content_at = None
-        completion_tokens = 0
+        first_token_at = None
+        token_chunks = 0
         gen_start = time.time()
         for elapsed, chunk in runtime.chat_stream(
             handle, messages, max_tokens=max_tokens, temperature=0.0
         ):
-            if first_content_at is None:
-                choices = chunk.get("choices") or []
-                if choices:
-                    delta = choices[0].get("delta") or {}
-                    if delta.get("content"):
-                        first_content_at = elapsed
             choices = chunk.get("choices") or []
-            if choices:
-                delta = choices[0].get("delta") or {}
-                if delta.get("content"):
-                    completion_tokens += 1
+            if choices and _delta_text(choices[0].get("delta") or {}):
+                if first_token_at is None:
+                    first_token_at = elapsed
+                token_chunks += 1
         gen_total = time.time() - gen_start
 
-        ttft = first_content_at if first_content_at is not None else gen_total
+        ttft = first_token_at if first_token_at is not None else gen_total
         decode_elapsed = max(gen_total - ttft, 1e-9)
-        decode_tps = (completion_tokens - 1) / decode_elapsed if completion_tokens > 1 else 0.0
+        decode_tps = (token_chunks - 1) / decode_elapsed if token_chunks > 1 else 0.0
 
         # --- prefill rate ---------------------------------------------
         prefill_tps = None
@@ -215,7 +234,7 @@ def measure_once(
             prefill_tps=prefill_tps,
             peak_rss_gb=round(peak, 2),
             prompt_tokens=prompt_tokens,
-            completion_tokens=completion_tokens,
+            completion_tokens=token_chunks,
         )
 
     except Exception as exc:

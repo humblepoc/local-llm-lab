@@ -17,15 +17,47 @@ for the case where there isn't one: a 32 GB laptop with an integrated GPU, where
 inference is **memory-bandwidth bound** and the model you pick matters far more
 than the quant you pick.
 
-On that hardware the governing rule is simple:
+On that hardware the governing rule is:
 
 ```
 bytes of weights read per generated token  ÷  ~58 GB/s  =  tokens/second
 ```
 
-A dense 24B at Q4 reads ~16 GB/token and lands near **3 tok/s**. A 30B MoE with
-3B active reads a fraction of that and lands an order of magnitude faster. That
-single distinction is what the model catalog here is organised around.
+---
+
+## The headline finding: MoE does not help on CPU
+
+This repository started with a hypothesis, and the first real measurement
+killed it.
+
+The theory was that Mixture-of-Experts models would be dramatically faster here,
+because all 33B of weights must be resident in RAM but only ~3B are read per
+token — roughly 2-3 GB of traffic instead of ~17 GB for a dense 27B at Q4.
+
+**Measured on Laguna XS 2.1 (33B MoE, 3B active, Q4_K_M):**
+
+| | Predicted | Measured |
+|---|---|---|
+| Bytes read per token | ~2-3 GB | ~8-9 GB implied |
+| Decode | 20-25 tok/s | **6.3 tok/s** |
+
+The active-parameter count is real, but on a bandwidth-bound CPU it does **not**
+convert into the expected memory-traffic saving. The model behaves roughly like
+a dense model of its full size.
+
+This matches a documented llama.cpp anomaly
+([#19480](https://github.com/ggml-org/llama.cpp/issues/19480)), where a
+3B-active MoE ran 3-4x slower than predicted, attributed to expert-routing
+scatter and poor memory locality.
+
+**MoE is a VRAM optimisation. On a CPU with no VRAM to save, it largely does
+not apply.** Every MoE in this catalog is subject to this. Treat the
+`active_params` column as a spec, not a performance figure.
+
+The practical upshot: **dense models may be a better bet than expected**, and a
+4 GB model will beat a 19 GB one regardless of architecture. The catalog still
+leans MoE because the published benchmark quality is there — but measure before
+committing, which is what this framework is for.
 
 ---
 
