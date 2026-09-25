@@ -31,11 +31,16 @@ class Row:
     load_s: float | None = None
     coding_pct: float | None = None
     tools_pct: float | None = None
+    failure: str | None = None
     warnings: list[str] = field(default_factory=list)
 
     @property
     def has_quality(self) -> bool:
         return self.coding_pct is not None or self.tools_pct is not None
+
+    @property
+    def has_measurement(self) -> bool:
+        return self.decode_tps is not None or self.failure is not None
 
     def quality_score(self) -> float | None:
         """Simple mean of available quality signals, 0-100."""
@@ -44,6 +49,8 @@ class Row:
 
     def fits_box(self) -> str:
         """Verdict against a 32GB CPU-only machine."""
+        if self.failure:
+            return "❌ failed"
         if self.peak_rss_gb is None:
             return "not measured"
         if self.peak_rss_gb > 30:
@@ -101,6 +108,22 @@ def build_rows(models: list[Model]) -> list[Row]:
                 pf = [s["prefill_tps"] for s in ok if s.get("prefill_tps")]
                 if pf:
                     row.prefill_tps = round(max(pf), 1)
+            else:
+                # Every sample failed. That is still a result and belongs on
+                # the board, not silently omitted.
+                first_err = next(
+                    (s.get("error") for s in perf["samples"] if s.get("error")), None
+                )
+                row.failure = (first_err or "run failed")[:160]
+                rss = [s["peak_rss_gb"] for s in perf["samples"] if s.get("peak_rss_gb")]
+                if rss:
+                    row.peak_rss_gb = round(max(rss), 2)
+                ld = [s["load_seconds"] for s in perf["samples"] if s.get("load_seconds")]
+                if ld:
+                    row.load_s = round(max(ld), 2)
+                pfe = [s["prefill_tps"] for s in perf["samples"] if s.get("prefill_tps")]
+                if pfe:
+                    row.prefill_tps = round(max(pfe), 1)
         coding = entry.get("coding")
         if coding and coding.get("total"):
             row.coding_pct = round(100 * coding.get("passed", 0) / coding["total"], 1)
@@ -112,7 +135,7 @@ def build_rows(models: list[Model]) -> list[Row]:
 
 
 def render(rows: list[Row], models: list[Model]) -> str:
-    measured = [r for r in rows if r.decode_tps is not None or r.has_quality]
+    measured = [r for r in rows if r.has_measurement or r.has_quality]
     lines: list[str] = []
     lines.append("# Leaderboard")
     lines.append("")
@@ -132,9 +155,15 @@ def render(rows: list[Row], models: list[Model]) -> str:
             "| Model | Params | Arch | Decode tok/s | TTFT | Prefill tok/s | Peak RSS | Coding | Tools | Fits 32GB |"
         )
         lines.append("|---|---|---|---|---|---|---|---|---|---|")
+        # Ranked by quality then speed, with failures pinned to the bottom
+        # rather than dropped.
         ordered = sorted(
             measured,
-            key=lambda r: (-(r.quality_score() or 0), -(r.decode_tps or 0)),
+            key=lambda r: (
+                r.failure is not None,
+                -(r.quality_score() or 0),
+                -(r.decode_tps or 0),
+            ),
         )
         for r in ordered:
             lines.append(
@@ -144,6 +173,14 @@ def render(rows: list[Row], models: list[Model]) -> str:
                 f"{_fmt(r.tools_pct, '%')} | {r.fits_box()} |"
             )
         lines.append("")
+
+        failures = [r for r in ordered if r.failure]
+        if failures:
+            lines.append("### Failed runs")
+            lines.append("")
+            for r in failures:
+                lines.append(f"- `{r.model_id}`: {r.failure}")
+            lines.append("")
 
     lines.append("## Catalog")
     lines.append("")
